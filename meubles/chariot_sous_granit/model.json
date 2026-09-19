@@ -161,14 +161,14 @@
       "note": "Fixée en façade, centrée"
     },
     {
-      "name": "Vis à bois/mélaminé 4x30mm",
+      "name": "Vis à bois 4x42mm",
       "qty": 40,
-      "unit_price": 0.04,
-      "note": "Assemblage des panneaux"
+      "unit_price": 0.05,
+      "note": ""
     }
   ],
   "total_wood_cost_eur": 28.39,
-  "total_hardware_cost_eur": 28.4,
-  "total_cost_eur": 56.79,
+  "total_hardware_cost_eur": 28.8,
+  "total_cost_eur": 57.19,
   "total_wood_area_m2": 1.577
 }

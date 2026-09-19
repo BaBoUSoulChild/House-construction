@@ -37,7 +37,7 @@ def furniture_to_scene(furniture: Furniture) -> dict:
         "panels": panels_json,
         "hardware": [
             {"name": h.name, "qty": h.qty, "unit_price": h.unit_price, "note": h.note}
-            for h in furniture.hardware
+            for h in furniture.all_hardware()
         ],
         "total_wood_cost_eur": round(furniture.total_wood_cost(), 2),
         "total_hardware_cost_eur": round(furniture.total_hardware_cost(), 2),

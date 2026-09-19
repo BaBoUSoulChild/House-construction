@@ -4,9 +4,11 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from atelier import Furniture, Hardware, Material, Panel
+from atelier import Furniture, Hardware, Joint, JointType, Material, Panel
 from atelier import cutlist as cutlist_mod
 from atelier import export_3d
+from atelier import hardware_catalog
+from atelier import joints as joints_mod
 
 CTP = Material(name="CTP18", thickness_mm=18.0, price_per_m2=30.0)
 
@@ -97,6 +99,71 @@ class Export3DTests(unittest.TestCase):
         self.assertAlmostEqual(panel["size_m"][0], 0.8, places=6)
         self.assertAlmostEqual(panel["position_m"][0], 0.1, places=6)
         self.assertEqual(scene["unit"], "m")
+
+
+class HardwareCatalogTests(unittest.TestCase):
+    def test_screw_diameter_scales_with_thickness(self):
+        self.assertIn("3.5x", hardware_catalog.recommended_screw(12))
+        self.assertIn("4x", hardware_catalog.recommended_screw(18))
+        self.assertIn("5x", hardware_catalog.recommended_screw(25))
+
+    def test_screw_length_derived_from_thickness(self):
+        # longueur = 2 * épaisseur + 10, arrondie
+        self.assertIn("46mm", hardware_catalog.recommended_screw(18))
+
+
+class JointTests(unittest.TestCase):
+    def test_vis_equerre_is_fixed_regardless_of_length(self):
+        joint = Joint(panel_a="a", panel_b="b", type=JointType.VIS_EQUERRE, length_mm=9999)
+        hw = joint.hardware(thickness_mm=18)
+        names = {h.name for h in hw}
+        self.assertIn("Équerre de fixation", names)
+        self.assertEqual(next(h.qty for h in hw if h.name == "Équerre de fixation"), 1)
+
+    def test_vis_directe_count_scales_with_length(self):
+        short = Joint(panel_a="a", panel_b="b", type=JointType.VIS_DIRECTE, length_mm=150)
+        long = Joint(panel_a="a", panel_b="b", type=JointType.VIS_DIRECTE, length_mm=1500)
+        short_qty = short.hardware(18)[0].qty
+        long_qty = long.hardware(18)[0].qty
+        self.assertLess(short_qty, long_qty)
+        self.assertGreaterEqual(short_qty, 2)  # jamais moins de 2 fixations
+
+    def test_queue_aronde_has_no_hardware_but_uses_glue(self):
+        joint = Joint(panel_a="a", panel_b="b", type=JointType.QUEUE_ARONDE, length_mm=300)
+        self.assertEqual(joint.hardware(18), [])
+        self.assertTrue(joint.uses_glue())
+
+    def test_aggregate_hardware_merges_duplicates_and_adds_one_glue_pot(self):
+        j1 = Joint("Côté gauche", "Fond", JointType.TOURILLONS, length_mm=300)
+        j2 = Joint("Côté droit", "Fond", JointType.TOURILLONS, length_mm=300)
+        thickness = {"Côté gauche": 18, "Côté droit": 18, "Fond": 18}
+        hw = joints_mod.aggregate_hardware([j1, j2], thickness)
+        dowels = next(h for h in hw if h.name.startswith("Tourillon"))
+        glue = [h for h in hw if "Colle" in h.name]
+        self.assertEqual(len(glue), 1)  # un seul pot, pas un par joint
+        self.assertEqual(glue[0].qty, 1)
+        # les tourillons des deux joints sont fusionnés en une seule ligne
+        expected_per_joint = joints_mod._fastener_count(300, JointType.TOURILLONS)
+        self.assertEqual(dowels.qty, expected_per_joint * 2)
+
+    def test_furniture_all_hardware_includes_joint_hardware(self):
+        f = Furniture(name="test")
+        f.add_panel(Panel(name="a", length_mm=300, width_mm=300, material=CTP))
+        f.add_panel(Panel(name="b", length_mm=300, width_mm=300, material=CTP))
+        f.add_hardware(Hardware(name="Poignée", qty=1, unit_price=5.0))
+        f.add_joint(Joint("a", "b", JointType.VIS_EQUERRE, length_mm=300))
+        names = {h.name for h in f.all_hardware()}
+        self.assertIn("Poignée", names)
+        self.assertIn("Équerre de fixation", names)
+        self.assertGreater(f.total_hardware_cost(), 5.0)  # au moins la poignée + le reste
+
+    def test_render_assembly_steps_references_panel_names(self):
+        joints = [Joint("Côté gauche", "Fond", JointType.VIS_DIRECTE, length_mm=300, note="depuis le dessous")]
+        steps = joints_mod.render_assembly_steps(joints)
+        self.assertEqual(len(steps), 1)
+        self.assertIn("Côté gauche", steps[0])
+        self.assertIn("Fond", steps[0])
+        self.assertIn("depuis le dessous", steps[0])
 
 
 if __name__ == "__main__":

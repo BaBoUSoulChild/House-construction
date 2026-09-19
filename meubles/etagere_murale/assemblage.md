@@ -13,10 +13,20 @@
 
 ## Quincaillerie
 
-- Vis à bois 4x40mm × 12 — Fixation tablettes/côtés
-- Pointes 15mm × 24 — Fixation du fond
 - Équerre de fixation murale × 2 — Accroche murale
+- Pointe 15mm × 32
+- Vis à bois 4x46mm × 24
+- Équerre de fixation × 6
 
 ## Étapes
 
-<!-- À compléter : décrire ici l'ordre d'assemblage, les perçages, etc. -->
+_Généré depuis les assemblages (`Joint`) définis dans `definition.py`, dans l'ordre où ils y sont déclarés. Ajustez librement ce fichier ensuite : il n'est jamais régénéré automatiquement une fois créé._
+
+1. Assembler **Côté gauche** et **Tablette basse** (vissé avec équerre).
+2. Assembler **Côté gauche** et **Tablette médiane** (vissé avec équerre).
+3. Assembler **Côté gauche** et **Tablette haute** (vissé avec équerre).
+4. Assembler **Côté droit** et **Tablette basse** (vissé avec équerre).
+5. Assembler **Côté droit** et **Tablette médiane** (vissé avec équerre).
+6. Assembler **Côté droit** et **Tablette haute** (vissé avec équerre).
+7. Assembler **Fond** et **Côté gauche** (cloué).
+8. Assembler **Fond** et **Côté droit** (cloué).

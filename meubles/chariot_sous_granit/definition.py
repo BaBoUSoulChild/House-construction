@@ -11,7 +11,7 @@ Origine : centre en X, sol en Y=0, profondeur de 0 (arrière, sous le granit)
 à D (avant, côté poignée).
 """
 
-from atelier import Furniture, Hardware, Material, Panel
+from atelier import Furniture, Hardware, Joint, JointType, Material, Panel
 
 # --- Espace disponible (mesuré) --------------------------------------------
 
@@ -123,9 +123,23 @@ def build() -> Furniture:
         )
     )
 
+    # Le fond porte les côtés, les faces et la cloison (vissage direct par en dessous).
+    for panneau, longueur in (
+        ("Côté gauche", PROFONDEUR),
+        ("Côté droit", PROFONDEUR),
+        ("Face arrière", largeur_interieure),
+        ("Face avant", largeur_interieure),
+        ("Cloison centrale", PROFONDEUR - 2 * T),
+    ):
+        f.add_joint(Joint("Fond", panneau, JointType.VIS_DIRECTE, length_mm=longueur))
+
+    # Les faces avant/arrière sont vissées dans les côtés.
+    for nom_cote in ("Côté gauche", "Côté droit"):
+        for nom_face in ("Face arrière", "Face avant"):
+            f.add_joint(Joint(nom_cote, nom_face, JointType.VIS_DIRECTE, length_mm=HAUTEUR_COTE))
+
     f.add_hardware(Hardware(name="Roulette pivotante Ø40mm", qty=4, unit_price=4.5, note="Vérifier hauteur totale avant découpe"))
     f.add_hardware(Hardware(name="Vis de fixation roulette", qty=16, unit_price=0.05))
     f.add_hardware(Hardware(name="Poignée métallique", qty=1, unit_price=8.0, note="Fixée en façade, centrée"))
-    f.add_hardware(Hardware(name="Vis à bois/mélaminé 4x30mm", qty=40, unit_price=0.04, note="Assemblage des panneaux"))
 
     return f

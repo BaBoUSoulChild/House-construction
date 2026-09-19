@@ -108,15 +108,29 @@ classDiagram
         +total_price : float
     }
 
+    class Joint {
+        +str panel_a
+        +str panel_b
+        +JointType type
+        +float length_mm
+        +str note
+        +hardware(thickness_mm) list~Hardware~
+        +uses_glue() bool
+    }
+
     class Furniture {
         +str name
         +str description
         +list~Panel~ panels
         +list~Hardware~ hardware
+        +list~Joint~ joints
         +add_panel(panel) Panel
         +add_hardware(item) Hardware
+        +add_joint(joint) Joint
         +bounding_box_mm() tuple
         +overall_size_mm() tuple
+        +joint_hardware() list~Hardware~
+        +all_hardware() list~Hardware~
         +total_wood_cost() float
         +total_hardware_cost() float
         +total_cost() float
@@ -124,7 +138,9 @@ classDiagram
 
     Furniture "1" o-- "*" Panel
     Furniture "1" o-- "*" Hardware
+    Furniture "1" o-- "*" Joint
     Panel "*" --> "1" Material
+    Joint "*" ..> "1" Panel : panel_a / panel_b (par nom)
 ```
 
 - **Convention d'axes** (comme three.js) : **Y = hauteur**, X/Z = plan
@@ -148,6 +164,39 @@ def build() -> Furniture:
     f.add_hardware(Hardware(name="Vis 4x40", qty=12, unit_price=0.05))
     return f
 ```
+
+## Assemblages (`Joint`) et quincaillerie déduite
+
+Plutôt que de deviner à la main la quantité de vis ou d'équerres, on décrit
+**comment** deux panneaux sont assemblés — le type d'assemblage et la
+quincaillerie qu'il nécessite se déduisent automatiquement :
+
+```python
+from atelier import Joint, JointType
+
+f.add_joint(Joint("Côté gauche", "Tablette basse", JointType.VIS_EQUERRE, length_mm=300))
+f.add_joint(Joint("Fond", "Côté gauche", JointType.CLOUS, length_mm=1800))
+```
+
+Types disponibles (`atelier/joints.py`) :
+
+| Type | Usage typique | Quincaillerie déduite |
+|---|---|---|
+| `VIS_EQUERRE` | tablette posée sur un côté | 1 équerre + 4 vis (taille selon épaisseur) |
+| `VIS_DIRECTE` | panneaux vissés bord à bord | vis réparties tous les ~150mm le long du joint |
+| `TOURILLONS` | assemblage chevillé collé | tourillons tous les ~100mm + colle |
+| `EXCENTRIQUES` | meuble en kit (vérins) | kits vérin+tourillon tous les ~180mm |
+| `CLOUS` | fond cloué | pointes tous les ~120mm |
+| `QUEUE_ARONDE` | assemblage bois-bois | aucune quincaillerie, juste de la colle |
+
+La taille de vis est calculée à partir de l'épaisseur des panneaux
+(`atelier/hardware_catalog.py`). Toute la quincaillerie issue des joints
+est fusionnée (doublons regroupés, un seul pot de colle même avec
+plusieurs joints collés) et s'ajoute à celle saisie manuellement via
+`add_hardware()` (charnières, poignées, roulettes... tout ce qui n'est
+pas un assemblage entre deux panneaux). `assemblage.md` génère ses étapes
+de montage dans l'ordre des `Joint` déclarés — si aucun joint n'est
+défini, le squelette manuel habituel est utilisé à la place.
 
 ## Plan de débit / nesting
 

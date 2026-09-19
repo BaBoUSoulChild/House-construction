@@ -16,8 +16,18 @@ Coffre à toit ouvert sur 4 roulettes pivotantes Ø40mm, glissé sous un plan de
 - Roulette pivotante Ø40mm × 4 — Vérifier hauteur totale avant découpe
 - Vis de fixation roulette × 16
 - Poignée métallique × 1 — Fixée en façade, centrée
-- Vis à bois/mélaminé 4x30mm × 40 — Assemblage des panneaux
+- Vis à bois 4x42mm × 40
 
 ## Étapes
 
-<!-- À compléter : décrire ici l'ordre d'assemblage, les perçages, etc. -->
+_Généré depuis les assemblages (`Joint`) définis dans `definition.py`, dans l'ordre où ils y sont déclarés. Ajustez librement ce fichier ensuite : il n'est jamais régénéré automatiquement une fois créé._
+
+1. Assembler **Fond** et **Côté gauche** (vissé directement).
+2. Assembler **Fond** et **Côté droit** (vissé directement).
+3. Assembler **Fond** et **Face arrière** (vissé directement).
+4. Assembler **Fond** et **Face avant** (vissé directement).
+5. Assembler **Fond** et **Cloison centrale** (vissé directement).
+6. Assembler **Côté gauche** et **Face arrière** (vissé directement).
+7. Assembler **Côté gauche** et **Face avant** (vissé directement).
+8. Assembler **Côté droit** et **Face arrière** (vissé directement).
+9. Assembler **Côté droit** et **Face avant** (vissé directement).

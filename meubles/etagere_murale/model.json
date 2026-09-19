@@ -143,26 +143,32 @@
   ],
   "hardware": [
     {
-      "name": "Vis à bois 4x40mm",
-      "qty": 12,
-      "unit_price": 0.05,
-      "note": "Fixation tablettes/côtés"
-    },
-    {
-      "name": "Pointes 15mm",
-      "qty": 24,
-      "unit_price": 0.02,
-      "note": "Fixation du fond"
-    },
-    {
       "name": "Équerre de fixation murale",
       "qty": 2,
       "unit_price": 3.5,
       "note": "Accroche murale"
+    },
+    {
+      "name": "Pointe 15mm",
+      "qty": 32,
+      "unit_price": 0.02,
+      "note": ""
+    },
+    {
+      "name": "Vis à bois 4x46mm",
+      "qty": 24,
+      "unit_price": 0.05,
+      "note": ""
+    },
+    {
+      "name": "Équerre de fixation",
+      "qty": 6,
+      "unit_price": 0.6,
+      "note": ""
     }
   ],
   "total_wood_cost_eur": 69.52,
-  "total_hardware_cost_eur": 8.08,
-  "total_cost_eur": 77.6,
+  "total_hardware_cost_eur": 12.44,
+  "total_cost_eur": 81.96,
   "total_wood_area_m2": 3.208
 }

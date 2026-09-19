@@ -7,7 +7,7 @@ Pour construire un meuble : copier ce dossier, adapter les cotes ci-dessous,
 puis lancer `python scripts/build.py meubles/<votre_dossier>`.
 """
 
-from atelier import Furniture, Hardware, Material, Panel
+from atelier import Furniture, Hardware, Joint, JointType, Material, Panel
 
 # --- Cotes générales (mm) ---------------------------------------------------
 
@@ -30,7 +30,8 @@ def build() -> Furniture:
 
     # Côtés (panneaux verticaux) : la longueur (1800) devient la hauteur,
     # la largeur (300) devient la profondeur, l'épaisseur (18) reste horizontale.
-    for nom, signe in (("Côté gauche", -1), ("Côté droit", 1)):
+    cotes = [("Côté gauche", -1), ("Côté droit", 1)]
+    for nom, signe in cotes:
         f.add_panel(
             Panel(
                 name=nom,
@@ -44,11 +45,12 @@ def build() -> Furniture:
 
     # Tablettes horizontales, encastrées entre les deux côtés.
     largeur_tablette = LARGEUR - 2 * CTP.thickness_mm
-    for nom, y in (
+    tablettes = [
         ("Tablette basse", CTP.thickness_mm / 2),
         ("Tablette médiane", HAUTEUR / 2),
         ("Tablette haute", HAUTEUR - CTP.thickness_mm / 2),
-    ):
+    ]
+    for nom, y in tablettes:
         f.add_panel(
             Panel(
                 name=nom,
@@ -73,8 +75,15 @@ def build() -> Furniture:
         )
     )
 
-    f.add_hardware(Hardware(name="Vis à bois 4x40mm", qty=12, unit_price=0.05, note="Fixation tablettes/côtés"))
-    f.add_hardware(Hardware(name="Pointes 15mm", qty=24, unit_price=0.02, note="Fixation du fond"))
+    # Chaque tablette est vissée sur les deux côtés avec une équerre.
+    for nom_cote, _ in cotes:
+        for nom_tablette, _ in tablettes:
+            f.add_joint(Joint(nom_cote, nom_tablette, JointType.VIS_EQUERRE, length_mm=PROFONDEUR))
+
+    # Le fond est cloué sur toute la hauteur des deux côtés.
+    for nom_cote, _ in cotes:
+        f.add_joint(Joint("Fond", nom_cote, JointType.CLOUS, length_mm=HAUTEUR))
+
     f.add_hardware(Hardware(name="Équerre de fixation murale", qty=2, unit_price=3.5, note="Accroche murale"))
 
     return f

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from . import cutlist as cutlist_mod
+from . import joints as joints_mod
 from .furniture import Furniture
 
 
@@ -64,11 +65,19 @@ def render_materiaux_md(furniture: Furniture, packing: dict[str, list[cutlist_mo
 
     lines.append("## Quincaillerie")
     lines.append("")
-    if furniture.hardware:
+    all_hardware = furniture.all_hardware()
+    if all_hardware:
         lines.append("| Élément | Quantité | Prix unitaire | Total | Note |")
         lines.append("|---|---:|---:|---:|---|")
-        for h in furniture.hardware:
+        for h in all_hardware:
             lines.append(f"| {h.name} | {h.qty} | {h.unit_price:.2f} € | {h.total_price:.2f} € | {h.note} |")
+        if furniture.joints:
+            lines.append("")
+            lines.append(
+                f"_{len(furniture.joints)} assemblage(s) définis dans `definition.py` — la quincaillerie "
+                "qu'ils nécessitent (vis, équerres, tourillons...) est calculée automatiquement et "
+                "incluse ci-dessus._"
+            )
     else:
         lines.append("_Aucune quincaillerie renseignée._")
     lines.append("")
@@ -102,12 +111,21 @@ def render_assemblage_md(furniture: Furniture) -> str:
     lines.append("")
     lines.append("## Quincaillerie")
     lines.append("")
-    for h in furniture.hardware:
+    for h in furniture.all_hardware():
         lines.append(f"- {h.name} × {h.qty}" + (f" — {h.note}" if h.note else ""))
     lines.append("")
     lines.append("## Étapes")
     lines.append("")
-    lines.append("<!-- À compléter : décrire ici l'ordre d'assemblage, les perçages, etc. -->")
+    if furniture.joints:
+        lines.append(
+            "_Généré depuis les assemblages (`Joint`) définis dans `definition.py`, "
+            "dans l'ordre où ils y sont déclarés. Ajustez librement ce fichier ensuite : "
+            "il n'est jamais régénéré automatiquement une fois créé._"
+        )
+        lines.append("")
+        lines.extend(joints_mod.render_assembly_steps(furniture.joints))
+    else:
+        lines.append("<!-- À compléter : décrire ici l'ordre d'assemblage, les perçages, etc. -->")
     lines.append("")
     return "\n".join(lines)
 
