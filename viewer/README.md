@@ -36,7 +36,7 @@ glisser-déposer, qui fonctionne dans tous les cas.
 
 ```bash
 python3 -m http.server        # à la racine du repo
-# http://localhost:8000/viewer/index.html?model=../meubles/exemple_etagere/model.json
+# http://localhost:8000/viewer/index.html?model=../meubles/etagere_murale/model.json
 ```
 
 Ou, sans rien lancer : ouvrir `viewer/index.html` directement dans le
@@ -59,7 +59,7 @@ par `.github/workflows/pages.yml` à chaque push (voir ce fichier).
 2. Le viewer est alors accessible sur :
    `https://<utilisateur>.github.io/<repo>/viewer/index.html?model=../meubles/<nom>/model.json`
 3. Les `model.json` doivent être commités dans le repo (ils le sont déjà
-   pour `meubles/exemple_etagere/` et `meubles/chariot_sous_granit/`) —
+   pour `meubles/etagere_murale/` et `meubles/chariot_sous_granit/`) —
    GitHub Pages ne sait pas exécuter le Python de `atelier/`, seulement
    servir les fichiers générés.
 

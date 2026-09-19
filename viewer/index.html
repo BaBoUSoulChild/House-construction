@@ -36,6 +36,17 @@
   }
   #dropzone.visible { display: flex; }
   #empty-hint { position: absolute; bottom: 16px; left: 16px; color: #888; font-size: 12px; }
+
+  @media (max-width: 640px) {
+    /* En dessous de la largeur d'un téléphone, le panneau latéral de 320px
+       masquerait quasiment toute la scène 3D : on le transforme en tiroir
+       du bas, pour laisser la scène utilisable au-dessus. */
+    #panel {
+      top: auto; bottom: 0; left: 0; right: 0; width: 100%;
+      max-height: 42%; border-top: 1px solid #333;
+    }
+    #empty-hint { bottom: 44%; }
+  }
 </style>
 </head>
 <body>

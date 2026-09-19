@@ -56,13 +56,19 @@ scene.add(gridHelper);
 // --- Human silhouette for scale reference -------------------------------------
 
 function makeSilhouette() {
+  const TOTAL_HEIGHT = 1.75;
+  const bodyRadius = 0.15;
+  const headRadius = 0.115;
+  const bodyHeight = TOTAL_HEIGHT - 2 * headRadius; // feet to top of shoulders
+  const cylinderLength = bodyHeight - 2 * bodyRadius;
+
   const group = new THREE.Group();
   const material = new THREE.MeshStandardMaterial({ color: 0x6ea8fe, transparent: true, opacity: 0.35 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.15, 4, 12), material);
-  body.position.y = 0.24 + 1.15 / 2;
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(bodyRadius, cylinderLength, 4, 12), material);
+  body.position.y = bodyHeight / 2;
   body.castShadow = true;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), material);
-  head.position.y = 0.24 + 1.15 + 0.11 + 0.02;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(headRadius, 16, 16), material);
+  head.position.y = bodyHeight + headRadius; // sits on top of the body, not buried in it
   head.castShadow = true;
   group.add(body, head);
   group.position.x = -1.2;
@@ -194,14 +200,17 @@ function selectPanel(name) {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 renderer.domElement.addEventListener("click", (event) => {
-  pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(furnitureGroup.children, true);
-  if (hits.length > 0) {
-    let obj = hits[0].object;
-    while (obj && !obj.userData.panel && obj.parent) obj = obj.parent;
-    if (obj?.userData.panel) selectPanel(obj.userData.panel.name);
+  // recursive:false — furnitureGroup.children are already the panel meshes;
+  // going recursive would also raycast their EdgesGeometry outline children,
+  // whose default line-picking threshold (1 world unit) is larger than the
+  // whole furniture and drowns out the real box-face hits.
+  const hits = raycaster.intersectObjects(furnitureGroup.children, false);
+  if (hits.length > 0 && hits[0].object.userData.panel) {
+    selectPanel(hits[0].object.userData.panel.name);
   }
 });
 

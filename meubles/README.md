@@ -25,13 +25,13 @@ reconstruit sans perte.
 
 ## Créer un meuble
 
-1. Copier `exemple_etagere/` vers `<nom_du_meuble>/`.
+1. Copier `etagere_murale/` vers `<nom_du_meuble>/`.
 2. Adapter `definition.py` : cotes réelles en mm, panneaux, quincaillerie
    (voir le README principal pour le modèle de données `atelier/`).
 3. `python scripts/build.py meubles/<nom_du_meuble>`
 4. Vérifier l'échelle et les proportions dans le visualiseur (`viewer/`).
 
-## `exemple_etagere/`
+## `etagere_murale/`
 
 Étagère murale 3 tablettes (800 × 1800 × 300 mm) servant de référence :
 elle illustre panneaux verticaux/horizontaux, rotations, fond rigide et

@@ -50,9 +50,9 @@ visualiseur statique) est servi à l'utilisateur final.
 ## Démarrage rapide
 
 ```bash
-python3 scripts/build.py meubles/exemple_etagere
+python3 scripts/build.py meubles/etagere_murale
 python3 -m http.server        # à la racine du repo
-# puis ouvrir : http://localhost:8000/viewer/index.html?model=../meubles/exemple_etagere/model.json
+# puis ouvrir : http://localhost:8000/viewer/index.html?model=../meubles/etagere_murale/model.json
 ```
 
 Le visualiseur fonctionne aussi sans serveur : ouvrez `viewer/index.html`
@@ -62,7 +62,7 @@ déploiement en ligne : [viewer/README.md](viewer/README.md).
 
 ## Créer un nouveau meuble
 
-1. Copier `meubles/exemple_etagere/` vers `meubles/<nom_du_meuble>/`.
+1. Copier `meubles/etagere_murale/` vers `meubles/<nom_du_meuble>/`.
 2. Éditer `definition.py` : décrire les panneaux (dimensions réelles en mm,
    position, rotation, matériau) et la quincaillerie. C'est le fichier
    qu'on modifie ensemble pendant la conception.

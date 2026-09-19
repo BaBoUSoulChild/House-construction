@@ -3,7 +3,7 @@
 à partir de son fichier `definition.py`.
 
 Usage :
-    python scripts/build.py meubles/exemple_etagere
+    python scripts/build.py meubles/etagere_murale
 """
 
 from __future__ import annotations
