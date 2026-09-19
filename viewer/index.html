@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atelier — Visualiseur 3D</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #1b1d22; }
+  #viewport { position: absolute; inset: 0; }
+  #panel {
+    position: absolute; top: 0; right: 0; width: 320px; max-height: 100%;
+    overflow-y: auto; background: rgba(24,26,32,0.92); color: #eee;
+    padding: 16px; box-sizing: border-box; font-size: 13px;
+  }
+  #panel h1 { font-size: 16px; margin: 0 0 4px; }
+  #panel p.desc { color: #aaa; margin: 0 0 12px; }
+  .stat { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #333; }
+  ul#panels-list { list-style: none; margin: 0; padding: 0; }
+  ul#panels-list li {
+    padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; cursor: pointer;
+    background: #23262e; border: 1px solid transparent;
+  }
+  ul#panels-list li:hover, ul#panels-list li.active { border-color: #6ea8fe; background: #2a2f3a; }
+  ul#panels-list li .dims { color: #9ab; font-size: 11px; }
+  button {
+    background: #2a2f3a; color: #eee; border: 1px solid #444; border-radius: 4px;
+    padding: 6px 10px; cursor: pointer; font-size: 12px; margin: 4px 4px 4px 0;
+  }
+  button:hover { background: #343a47; }
+  button.active { border-color: #6ea8fe; color: #6ea8fe; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin: 16px 0 6px; }
+  #dropzone {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 18px; z-index: 10; text-align: center;
+    flex-direction: column; gap: 12px;
+  }
+  #dropzone.visible { display: flex; }
+  #empty-hint { position: absolute; bottom: 16px; left: 16px; color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+  <div id="viewport"></div>
+  <div id="panel">
+    <h1 id="furniture-name">Aucun meuble chargé</h1>
+    <p class="desc" id="furniture-desc"></p>
+
+    <h2>Encombrement réel</h2>
+    <div id="stats"></div>
+
+    <h2>Affichage</h2>
+    <button id="toggle-silhouette">Silhouette 1,75 m</button>
+    <button id="toggle-grid">Grille 1 m</button>
+    <label style="display:block; margin-top:8px;">
+      <input type="file" id="file-input" accept="application/json" style="font-size:12px;" />
+    </label>
+
+    <h2>Panneaux</h2>
+    <ul id="panels-list"></ul>
+  </div>
+  <div id="empty-hint">Glissez-déposez un fichier model.json, ou choisissez-en un ci-contre.</div>
+  <div id="dropzone"><div>Déposez le fichier model.json ici</div></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>

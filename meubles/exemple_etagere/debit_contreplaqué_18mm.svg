@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="290" viewBox="0 0 540 290" font-family="sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="20" y="14" font-size="13" font-weight="bold">Contreplaqué 18mm</text>
+<rect x="20.0" y="30.0" width="500.0" height="250.0" fill="none" stroke="black" stroke-width="1.5"/>
+<text x="20.0" y="27.0" font-size="10">Plaque 1 — utilisation 57%</text>
+<rect x="20.0" y="30.0" width="360.0" height="60.0" fill="#c9a87655" stroke="#555" stroke-width="1"/>
+<text x="23.0" y="42.0" font-size="9">Côté gauche</text>
+<rect x="20.0" y="90.6" width="360.0" height="60.0" fill="#c9a87655" stroke="#555" stroke-width="1"/>
+<text x="23.0" y="102.6" font-size="9">Côté droit</text>
+<rect x="20.0" y="151.2" width="152.8" height="60.0" fill="#c9a87655" stroke="#555" stroke-width="1"/>
+<text x="23.0" y="163.2" font-size="9">Tablette basse</text>
+<rect x="173.4" y="151.2" width="152.8" height="60.0" fill="#c9a87655" stroke="#555" stroke-width="1"/>
+<text x="176.4" y="163.2" font-size="9">Tablette médiane</text>
+<rect x="326.8" y="151.2" width="152.8" height="60.0" fill="#c9a87655" stroke="#555" stroke-width="1"/>
+<text x="329.8" y="163.2" font-size="9">Tablette haute</text>
+</svg>
