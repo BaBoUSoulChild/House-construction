@@ -52,7 +52,7 @@ visualiseur statique) est servi à l'utilisateur final.
 ```bash
 python3 scripts/build.py meubles/exemple_etagere
 python3 -m http.server        # à la racine du repo
-# puis ouvrir : http://localhost:8000/viewer/index.html?model=/meubles/exemple_etagere/model.json
+# puis ouvrir : http://localhost:8000/viewer/index.html?model=../meubles/exemple_etagere/model.json
 ```
 
 Le visualiseur fonctionne aussi sans serveur : ouvrez `viewer/index.html`

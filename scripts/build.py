@@ -68,9 +68,9 @@ def build_folder(folder: pathlib.Path, force_assemblage: bool = False) -> None:
     print(f"  Encombrement : {overall_mm[0]:.0f} × {overall_mm[1]:.0f} × {overall_mm[2]:.0f} mm")
     print(f"  Coût estimé  : {furniture.total_cost():.2f} €")
     print(f"  Fichiers générés dans {folder}/ : model.json, cutlist.md, materiaux.md, assemblage.md, debit_*.svg")
-    rel_model = model_path.resolve().relative_to(REPO_ROOT)
+    rel_from_viewer = pathlib.Path("..") / model_path.resolve().relative_to(REPO_ROOT)
     print(f"  Visualiser : python -m http.server (à la racine du repo), puis ouvrir "
-          f"viewer/index.html?model=/{rel_model.as_posix()}")
+          f"viewer/index.html?model={rel_from_viewer.as_posix()}")
 
 
 def main() -> None:
