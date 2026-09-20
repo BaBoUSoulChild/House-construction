@@ -12,6 +12,7 @@ Origine : centre en X, sol en Y=0, profondeur de 0 (arrière, sous le granit)
 """
 
 from atelier import Furniture, Hardware, Joint, JointType, Material, Panel
+from atelier.contact import PROTRUSION_MM
 
 # --- Espace disponible (mesuré) --------------------------------------------
 
@@ -159,7 +160,25 @@ def build() -> Furniture:
             positions_mm=roulette_positions,
         )
     )
-    f.add_hardware(Hardware(name="Vis de fixation roulette", qty=16, unit_price=0.05))
+    # 4 vis par roulette, aux 4 coins d'une platine de fixation typique
+    # (~30x30mm), vissées par en dessous dans le fond — décalées de
+    # PROTRUSION_MM sous le fond pour reposer visuellement contre lui,
+    # comme les autres marqueurs de quincaillerie.
+    plate_half = 15.0
+    vis_roulette_positions = [
+        (rx + dx, HAUTEUR_ROULETTE_MM - PROTRUSION_MM, rz + dz)
+        for rx, _, rz in roulette_positions
+        for dx in (-plate_half, plate_half)
+        for dz in (-plate_half, plate_half)
+    ]
+    f.add_hardware(
+        Hardware(
+            name="Vis de fixation roulette",
+            qty=16,
+            unit_price=0.05,
+            positions_mm=vis_roulette_positions,
+        )
+    )
     f.add_hardware(
         Hardware(
             name="Poignée métallique",
