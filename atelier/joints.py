@@ -53,7 +53,16 @@ def _fastener_count(length_mm: float, joint_type: JointType) -> int:
 
 @dataclass
 class Joint:
-    """Un assemblage entre deux panneaux, nommés par leur `Panel.name`."""
+    """Un assemblage entre deux panneaux, nommés par leur `Panel.name`.
+
+    Convention : `panel_a` est le panneau **traversé** par la fixation (là
+    où on verrait la tête de vis/le clou une fois monté), `panel_b` celui
+    dans lequel elle est plantée. Cet ordre sert à positionner les
+    marqueurs 3D de la quincaillerie (voir `atelier/contact.py`) — pour un
+    assemblage symétrique (ex. `QUEUE_ARONDE`) ou une équerre (vis dans les
+    deux panneaux), l'ordre a moins d'importance mais reste utilisé comme
+    convention par défaut.
+    """
 
     panel_a: str
     panel_b: str

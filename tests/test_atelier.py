@@ -179,11 +179,16 @@ class ContactGeometryTests(unittest.TestCase):
         # Côté gauche : 200 (hauteur, Y) x 780 (profondeur, Z), épaisseur 16mm.
         self.aabb_cote = contact.aabb_mm((-472.0, 171.0, 390.0), (200.0, 780.0, 16.0), (90, 0, 90))
 
-    def test_points_lie_on_the_shared_boundary(self):
+    def test_points_are_recessed_into_panel_a_not_on_the_seam(self):
+        # aabb_fond = panel_a (traversé par la vis) : épaisseur Y = [55, 71].
+        # Les points doivent être au centre de cette épaisseur (y=63), pas
+        # exactement sur le plan de contact (y=71), pour ne pas sembler
+        # flotter sur l'arête visible du meuble.
         points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=6)
         self.assertEqual(len(points), 6)
         for x, y, z in points:
-            self.assertAlmostEqual(y, 71.0, delta=0.5)  # sur le plan de contact réel
+            self.assertAlmostEqual(y, 63.0, delta=0.5)
+            self.assertNotAlmostEqual(y, 71.0, delta=0.5)
 
     def test_points_spread_along_the_joint_length(self):
         points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=5)

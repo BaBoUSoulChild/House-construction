@@ -133,7 +133,9 @@ def build() -> Furniture:
     ):
         f.add_joint(Joint("Fond", panneau, JointType.VIS_DIRECTE, length_mm=longueur))
 
-    # Les faces avant/arrière sont vissées dans les côtés.
+    # Les faces avant/arrière (encastrées entre les côtés) sont vissées depuis
+    # l'extérieur des côtés : la vis traverse le côté et se plante dans la
+    # tranche de la face.
     for nom_cote in ("Côté gauche", "Côté droit"):
         for nom_face in ("Face arrière", "Face avant"):
             f.add_joint(Joint(nom_cote, nom_face, JointType.VIS_DIRECTE, length_mm=HAUTEUR_COTE))
