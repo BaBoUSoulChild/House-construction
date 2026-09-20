@@ -5,6 +5,7 @@ import unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 from atelier import Furniture, Hardware, Joint, JointType, Material, Panel
+from atelier import contact
 from atelier import cutlist as cutlist_mod
 from atelier import export_3d
 from atelier import hardware_catalog
@@ -164,6 +165,77 @@ class JointTests(unittest.TestCase):
         self.assertIn("Côté gauche", steps[0])
         self.assertIn("Fond", steps[0])
         self.assertIn("depuis le dessous", steps[0])
+
+
+class ContactGeometryTests(unittest.TestCase):
+    """Deux panneaux réellement accolés (comme dans un definition.py correct) :
+    un côté vertical (18mm d'épaisseur) posé sur un fond horizontal (16mm),
+    qui se touchent exactement au niveau y=71.
+    """
+
+    def setUp(self):
+        # Fond : 960 (X) x 780 (Z), épaisseur 16mm, centré à y=63 (touche le côté à y=71).
+        self.aabb_fond = contact.aabb_mm((0.0, 63.0, 390.0), (960.0, 780.0, 16.0), (90, 0, 0))
+        # Côté gauche : 200 (hauteur, Y) x 780 (profondeur, Z), épaisseur 16mm.
+        self.aabb_cote = contact.aabb_mm((-472.0, 171.0, 390.0), (200.0, 780.0, 16.0), (90, 0, 90))
+
+    def test_points_lie_on_the_shared_boundary(self):
+        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=6)
+        self.assertEqual(len(points), 6)
+        for x, y, z in points:
+            self.assertAlmostEqual(y, 71.0, delta=0.5)  # sur le plan de contact réel
+
+    def test_points_spread_along_the_joint_length(self):
+        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=5)
+        zs = sorted(p[2] for p in points)
+        self.assertGreater(zs[-1] - zs[0], 500)  # réparties sur l'essentiel des 780mm de profondeur
+
+    def test_single_point_is_centered(self):
+        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=1)
+        self.assertEqual(len(points), 1)
+
+    def test_disjoint_boxes_do_not_crash(self):
+        far_away = contact.aabb_mm((5000.0, 5000.0, 5000.0), (10.0, 10.0, 10.0), (0, 0, 0))
+        points = contact.contact_points_mm(self.aabb_fond, far_away, count=3)
+        self.assertEqual(len(points), 3)  # pas d'exception, juste une approximation dégénérée
+
+
+class Export3DHardwarePositionsTests(unittest.TestCase):
+    def test_joint_hardware_marker_count_matches_qty(self):
+        f = Furniture(name="test")
+        f.add_panel(Panel(name="Fond", length_mm=960, width_mm=780, material=CTP,
+                           position_mm=(0.0, 8.0, 390.0), rotation_deg=(90, 0, 0)))
+        f.add_panel(Panel(name="Côté gauche", length_mm=200, width_mm=780, material=CTP,
+                           position_mm=(-472.0, 116.0, 390.0), rotation_deg=(90, 0, 90)))
+        f.add_joint(Joint("Fond", "Côté gauche", JointType.VIS_DIRECTE, length_mm=780))
+        scene = export_3d.furniture_to_scene(f)
+        vis = next(h for h in scene["hardware"] if h["name"].startswith("Vis à bois"))
+        self.assertEqual(len(vis["positions_m"]), vis["qty"])
+        self.assertEqual(set(vis["panels"]), {"Fond", "Côté gauche"})
+
+    def test_manual_hardware_positions_pass_through(self):
+        f = Furniture(name="test")
+        f.add_panel(Panel(name="p", length_mm=100, width_mm=100, material=CTP))
+        f.add_hardware(Hardware(name="Poignée", qty=1, unit_price=5.0, positions_mm=[(10.0, 20.0, 30.0)]))
+        scene = export_3d.furniture_to_scene(f)
+        poignee = next(h for h in scene["hardware"] if h["name"] == "Poignée")
+        self.assertEqual(poignee["positions_m"], [[0.01, 0.02, 0.03]])
+
+    def test_hardware_without_position_has_empty_list(self):
+        f = Furniture(name="test")
+        f.add_panel(Panel(name="p", length_mm=100, width_mm=100, material=CTP))
+        f.add_hardware(Hardware(name="Colle", qty=1, unit_price=5.0))
+        scene = export_3d.furniture_to_scene(f)
+        colle = next(h for h in scene["hardware"] if h["name"] == "Colle")
+        self.assertEqual(colle["positions_m"], [])
+        self.assertEqual(colle["panels"], [])
+
+    def test_joint_with_unknown_panel_raises_clear_error(self):
+        f = Furniture(name="test")
+        f.add_panel(Panel(name="Fond", length_mm=960, width_mm=780, material=CTP))
+        f.add_joint(Joint("Fond", "Panneau introuvable", JointType.VIS_DIRECTE, length_mm=300))
+        with self.assertRaises(ValueError):
+            export_3d.furniture_to_scene(f)
 
 
 if __name__ == "__main__":

@@ -92,8 +92,15 @@ document.getElementById("toggle-grid").addEventListener("click", (e) => {
 let furnitureGroup = new THREE.Group();
 scene.add(furnitureGroup);
 const meshByPanelName = new Map();
-let highlighted = null;
+let highlightedPanel = null;
 const baseMaterialColor = new Map();
+
+// Marqueurs rouges de quincaillerie (vis, tourillons...) + panneaux surlignés en rouge.
+let markersGroup = new THREE.Group();
+scene.add(markersGroup);
+const markerGeometry = new THREE.SphereGeometry(0.012, 12, 12);
+const markerMaterial = new THREE.MeshStandardMaterial({ color: 0xff2a2a, emissive: 0x661010 });
+let hardwareHighlightedPanels = [];
 
 function clearFurniture() {
   scene.remove(furnitureGroup);
@@ -101,7 +108,27 @@ function clearFurniture() {
   scene.add(furnitureGroup);
   meshByPanelName.clear();
   baseMaterialColor.clear();
-  highlighted = null;
+  highlightedPanel = null;
+  clearHardwareHighlight();
+}
+
+function clearPanelHighlight() {
+  if (highlightedPanel) {
+    highlightedPanel.material.emissive?.setHex(0x000000);
+    highlightedPanel = null;
+  }
+  document.querySelectorAll("#panels-list li.active").forEach((li) => li.classList.remove("active"));
+}
+
+function clearHardwareHighlight() {
+  for (const mesh of hardwareHighlightedPanels) {
+    mesh.material.emissive?.setHex(0x000000);
+  }
+  hardwareHighlightedPanels = [];
+  scene.remove(markersGroup);
+  markersGroup = new THREE.Group();
+  scene.add(markersGroup);
+  document.querySelectorAll("#hardware-list li.active").forEach((li) => li.classList.remove("active"));
 }
 
 function loadModel(data) {
@@ -162,6 +189,24 @@ function loadModel(data) {
     list.appendChild(li);
   }
 
+  const hardwareList = document.getElementById("hardware-list");
+  hardwareList.innerHTML = "";
+  for (const h of data.hardware || []) {
+    const hasPositions = (h.positions_m || []).length > 0;
+    const li = document.createElement("li");
+    li.classList.toggle("disabled", !hasPositions);
+    const priceTxt = h.unit_price ? ` — ${h.unit_price.toFixed(2)} €/u` : "";
+    const hint = hasPositions
+      ? '<div class="hint">cliquer pour localiser en 3D</div>'
+      : '<div class="hint">emplacement non renseigné</div>';
+    li.innerHTML = `<div>${h.name} <span class="qty">× ${h.qty}${priceTxt}</span></div>${hint}`;
+    li.dataset.hardware = h.name;
+    if (hasPositions) {
+      li.addEventListener("click", () => selectHardware(h.name, data.hardware));
+    }
+    hardwareList.appendChild(li);
+  }
+
   // Frame camera on the furniture's bounding box.
   const box = new THREE.Box3().setFromObject(furnitureGroup);
   const size = new THREE.Vector3();
@@ -184,15 +229,40 @@ function loadModel(data) {
 }
 
 function selectPanel(name) {
+  clearHardwareHighlight();
+  clearPanelHighlight();
   document.querySelectorAll("#panels-list li").forEach((li) => li.classList.toggle("active", li.dataset.panel === name));
-  if (highlighted) {
-    highlighted.material.emissive?.setHex(0x000000);
-  }
   const mesh = meshByPanelName.get(name);
   if (mesh) {
     mesh.material.emissive = new THREE.Color(0x6ea8fe);
     mesh.material.emissiveIntensity = 0.5;
-    highlighted = mesh;
+    highlightedPanel = mesh;
+  }
+}
+
+function selectHardware(name, hardwareData) {
+  clearPanelHighlight();
+  clearHardwareHighlight();
+  document.querySelectorAll("#hardware-list li").forEach((li) => {
+    li.classList.toggle("active", li.dataset.hardware === name);
+  });
+
+  const entry = (hardwareData || []).find((h) => h.name === name);
+  if (!entry) return;
+
+  for (const panelName of entry.panels || []) {
+    const mesh = meshByPanelName.get(panelName);
+    if (mesh) {
+      mesh.material.emissive = new THREE.Color(0xff2a2a);
+      mesh.material.emissiveIntensity = 0.4;
+      hardwareHighlightedPanels.push(mesh);
+    }
+  }
+
+  for (const [mx, my, mz] of entry.positions_m || []) {
+    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+    marker.position.set(mx, my, mz);
+    markersGroup.add(marker);
   }
 }
 

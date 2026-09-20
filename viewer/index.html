@@ -22,6 +22,16 @@
   }
   ul#panels-list li:hover, ul#panels-list li.active { border-color: #6ea8fe; background: #2a2f3a; }
   ul#panels-list li .dims { color: #9ab; font-size: 11px; }
+  ul#hardware-list { list-style: none; margin: 0; padding: 0; }
+  ul#hardware-list li {
+    padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; cursor: pointer;
+    background: #23262e; border: 1px solid transparent;
+  }
+  ul#hardware-list li:hover, ul#hardware-list li.active { border-color: #ff5c5c; background: #2f2323; }
+  ul#hardware-list li.disabled { cursor: default; opacity: 0.55; }
+  ul#hardware-list li.disabled:hover { border-color: transparent; background: #23262e; }
+  ul#hardware-list li .qty { color: #e79; font-size: 11px; }
+  ul#hardware-list li .hint { color: #666; font-size: 10px; }
   button {
     background: #2a2f3a; color: #eee; border: 1px solid #444; border-radius: 4px;
     padding: 6px 10px; cursor: pointer; font-size: 12px; margin: 4px 4px 4px 0;
@@ -67,6 +77,9 @@
 
     <h2>Panneaux</h2>
     <ul id="panels-list"></ul>
+
+    <h2>Quincaillerie détaillée</h2>
+    <ul id="hardware-list"></ul>
   </div>
   <div id="empty-hint">Glissez-déposez un fichier model.json, ou choisissez-en un ci-contre.</div>
   <div id="dropzone"><div>Déposez le fichier model.json ici</div></div>

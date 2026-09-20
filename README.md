@@ -105,6 +105,7 @@ classDiagram
         +int qty
         +float unit_price
         +str note
+        +list~tuple~ positions_mm
         +total_price : float
     }
 
@@ -214,6 +215,16 @@ Page statique en Three.js (chargé depuis un CDN, pas d'installation) :
 rotation/zoom libres (OrbitControls), panneaux cliquables (met en évidence
 le panneau et affiche ses cotes), grille au sol de 1 m, et une silhouette
 humaine de 1,75 m activable pour juger l'échelle d'un coup d'œil.
+
+La section **Quincaillerie détaillée** liste chaque vis/équerre/tourillon...
+et, pour tout ce qui a une position connue (les `Joint`, ou une
+`Hardware` avec `positions_mm` renseigné), cliquer dessus surligne en
+rouge les panneaux concernés et place des marqueurs rouges à
+l'emplacement approximatif de chaque fixation. Ces positions sont
+calculées à partir du chevauchement des boîtes englobantes des deux
+panneaux (`atelier/contact.py`) : c'est une approximation visuelle utile
+pour se repérer, **pas un plan de perçage fiable**. La quincaillerie sans
+position connue reste listée mais grisée (non cliquable).
 
 ## Déploiement
 

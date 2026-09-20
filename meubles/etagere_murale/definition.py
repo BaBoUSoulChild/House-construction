@@ -84,6 +84,14 @@ def build() -> Furniture:
     for nom_cote, _ in cotes:
         f.add_joint(Joint("Fond", nom_cote, JointType.CLOUS, length_mm=HAUTEUR))
 
-    f.add_hardware(Hardware(name="Équerre de fixation murale", qty=2, unit_price=3.5, note="Accroche murale"))
+    f.add_hardware(
+        Hardware(
+            name="Équerre de fixation murale",
+            qty=2,
+            unit_price=3.5,
+            note="Accroche murale",
+            positions_mm=[(-300.0, HAUTEUR - 100.0, 0.0), (300.0, HAUTEUR - 100.0, 0.0)],
+        )
+    )
 
     return f

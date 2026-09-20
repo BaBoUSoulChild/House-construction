@@ -23,6 +23,9 @@ _SPACING_MM = {
     "clous": 120.0,
 }
 
+GLUE_HARDWARE_NAME = "Colle à bois (pot)"
+_GLUE_MARKER_COUNT_FALLBACK = 3  # pour les joints collés sans fixation comptable (queue d'aronde)
+
 
 class JointType(Enum):
     VIS_EQUERRE = "vis_equerre"      # équerre + vis, ponctuel (ex: tablette sur un côté)
@@ -83,6 +86,23 @@ class Joint:
     def uses_glue(self) -> bool:
         return self.type in (JointType.TOURILLONS, JointType.QUEUE_ARONDE)
 
+    def hardware_with_glue(self, thickness_mm: float) -> list[Hardware]:
+        """Comme `hardware()`, mais avec une ligne de colle synthétique en plus
+        si le joint est collé. Le `qty` de cette ligne de colle ne représente
+        PAS un vrai nombre de pots (voir `aggregate_hardware`, qui n'en compte
+        qu'un seul au total) : il sert uniquement à savoir combien de points de
+        colle approximatifs afficher en 3D pour ce joint.
+        """
+        lines = list(self.hardware(thickness_mm))
+        if self.uses_glue():
+            glue_qty = (
+                _fastener_count(self.length_mm, JointType.TOURILLONS)
+                if self.type is JointType.TOURILLONS
+                else _GLUE_MARKER_COUNT_FALLBACK
+            )
+            lines.append(Hardware(name=GLUE_HARDWARE_NAME, qty=glue_qty, unit_price=0.0))
+        return lines
+
 
 def aggregate_hardware(joints: list[Joint], thickness_by_panel: dict[str, float]) -> list[Hardware]:
     """Quincaillerie totale de tous les joints (fusionne les lignes identiques)."""
@@ -100,7 +120,7 @@ def aggregate_hardware(joints: list[Joint], thickness_by_panel: dict[str, float]
 
     hardware = [Hardware(name=name, qty=qty, unit_price=price) for (name, price), qty in sorted(counts.items())]
     if needs_glue:
-        hardware.append(Hardware(name="Colle à bois (pot)", qty=1, unit_price=6.0))
+        hardware.append(Hardware(name=GLUE_HARDWARE_NAME, qty=1, unit_price=6.0))
     return hardware
 
 

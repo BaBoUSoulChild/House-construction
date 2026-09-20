@@ -138,8 +138,34 @@ def build() -> Furniture:
         for nom_face in ("Face arrière", "Face avant"):
             f.add_joint(Joint(nom_cote, nom_face, JointType.VIS_DIRECTE, length_mm=HAUTEUR_COTE))
 
-    f.add_hardware(Hardware(name="Roulette pivotante Ø40mm", qty=4, unit_price=4.5, note="Vérifier hauteur totale avant découpe"))
+    # Roulettes proches des 4 coins du fond, en retrait de 40mm des bords.
+    inset = 40.0
+    x_roulette = LARGEUR / 2 - inset
+    roulette_positions = [
+        (-x_roulette, HAUTEUR_ROULETTE_MM / 2, inset),
+        (x_roulette, HAUTEUR_ROULETTE_MM / 2, inset),
+        (-x_roulette, HAUTEUR_ROULETTE_MM / 2, PROFONDEUR - inset),
+        (x_roulette, HAUTEUR_ROULETTE_MM / 2, PROFONDEUR - inset),
+    ]
+
+    f.add_hardware(
+        Hardware(
+            name="Roulette pivotante Ø40mm",
+            qty=4,
+            unit_price=4.5,
+            note="Vérifier hauteur totale avant découpe",
+            positions_mm=roulette_positions,
+        )
+    )
     f.add_hardware(Hardware(name="Vis de fixation roulette", qty=16, unit_price=0.05))
-    f.add_hardware(Hardware(name="Poignée métallique", qty=1, unit_price=8.0, note="Fixée en façade, centrée"))
+    f.add_hardware(
+        Hardware(
+            name="Poignée métallique",
+            qty=1,
+            unit_price=8.0,
+            note="Fixée en façade, centrée",
+            positions_mm=[(0.0, y_centre_cote, PROFONDEUR)],
+        )
+    )
 
     return f
