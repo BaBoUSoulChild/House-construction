@@ -96,10 +96,37 @@ let highlightedPanel = null;
 const baseMaterialColor = new Map();
 
 // Marqueurs rouges de quincaillerie (vis, tourillons...) + panneaux surlignés en rouge.
+// Rendus en sprites à taille d'écran constante (pas de taille fixe dans le
+// monde 3D) : sinon, en zoomant très près, deux vis espacées de quelques
+// cm finissent par occuper chacune tout l'écran et semblent fusionner,
+// alors qu'elles sont bien distinctes en 3D.
 let markersGroup = new THREE.Group();
 scene.add(markersGroup);
-const markerGeometry = new THREE.SphereGeometry(0.012, 12, 12);
-const markerMaterial = new THREE.MeshStandardMaterial({ color: 0xff2a2a, emissive: 0x661010 });
+
+function makeMarkerTexture() {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const r = size / 2;
+  const gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
+  gradient.addColorStop(0, "#ff6b6b");
+  gradient.addColorStop(0.7, "#ff2a2a");
+  gradient.addColorStop(1, "rgba(255,42,42,0)");
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(r, r, r, 0, Math.PI * 2);
+  ctx.fill();
+  return new THREE.CanvasTexture(canvas);
+}
+
+const markerMaterial = new THREE.SpriteMaterial({
+  map: makeMarkerTexture(),
+  sizeAttenuation: false,
+  depthTest: true,
+  transparent: true,
+});
+const MARKER_SCREEN_SIZE = 0.035; // taille écran fixe (unités NDC-ish, indépendante du zoom)
 let hardwareHighlightedPanels = [];
 
 function clearFurniture() {
@@ -260,8 +287,9 @@ function selectHardware(name, hardwareData) {
   }
 
   for (const [mx, my, mz] of entry.positions_m || []) {
-    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+    const marker = new THREE.Sprite(markerMaterial);
     marker.position.set(mx, my, mz);
+    marker.scale.set(MARKER_SCREEN_SIZE, MARKER_SCREEN_SIZE, 1);
     markersGroup.add(marker);
   }
 }
