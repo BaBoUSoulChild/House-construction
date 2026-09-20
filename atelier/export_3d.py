@@ -3,26 +3,30 @@ from __future__ import annotations
 from collections import defaultdict
 
 from . import contact
+from .contact import Fastener
 from .furniture import Furniture
+
+DEFAULT_NORMAL: tuple[float, float, float] = (0.0, 1.0, 0.0)  # vers le haut, faute de mieux
 
 
 def _mm_to_m(p: tuple[float, float, float]) -> list[float]:
     return [v / 1000 for v in p]
 
 
-def _hardware_positions_and_panels(
+def _hardware_fasteners_and_panels(
     furniture: Furniture,
-) -> tuple[dict[str, list[tuple[float, float, float]]], dict[str, set[str]]]:
-    """Pour chaque nom de quincaillerie : les positions 3D connues (mm) et les
-    panneaux impliqués, en combinant les positions saisies à la main
-    (`Hardware.positions_mm`) et celles déduites des `Joint`.
+) -> tuple[dict[str, list[Fastener]], dict[str, set[str]]]:
+    """Pour chaque nom de quincaillerie : les fixations 3D connues (position +
+    direction, en mm) et les panneaux impliqués, en combinant les positions
+    saisies à la main (`Hardware.positions_mm`, sans direction connue — on
+    suppose "vers le haut") et celles déduites des `Joint`.
     """
-    positions: dict[str, list[tuple[float, float, float]]] = defaultdict(list)
+    fasteners: dict[str, list[Fastener]] = defaultdict(list)
     panels_touched: dict[str, set[str]] = defaultdict(set)
 
     for h in furniture.hardware:
-        if h.positions_mm:
-            positions[h.name].extend(h.positions_mm)
+        for pos in h.positions_mm:
+            fasteners[h.name].append(Fastener(position_mm=pos, normal=DEFAULT_NORMAL))
 
     panels_by_name = {p.name: p for p in furniture.panels}
     for joint in furniture.joints:
@@ -40,11 +44,10 @@ def _hardware_positions_and_panels(
         thickness = min(panel_a.thickness_mm, panel_b.thickness_mm)
 
         for hw in joint.hardware_with_glue(thickness):
-            pts = contact.contact_points_mm(aabb_a, aabb_b, hw.qty)
-            positions[hw.name].extend(pts)
+            fasteners[hw.name].extend(contact.contact_fasteners_mm(aabb_a, aabb_b, hw.qty))
             panels_touched[hw.name].update((joint.panel_a, joint.panel_b))
 
-    return positions, panels_touched
+    return fasteners, panels_touched
 
 
 def furniture_to_scene(furniture: Furniture) -> dict:
@@ -71,16 +74,18 @@ def furniture_to_scene(furniture: Furniture) -> dict:
     lo_mm, hi_mm = furniture.bounding_box_mm()
     overall_mm = tuple(hi_mm[i] - lo_mm[i] for i in range(3))
 
-    positions_by_name, panels_by_name = _hardware_positions_and_panels(furniture)
+    fasteners_by_name, panels_by_name = _hardware_fasteners_and_panels(furniture)
     hardware_json = []
     for h in furniture.all_hardware():
+        hw_fasteners = fasteners_by_name.get(h.name, [])
         hardware_json.append(
             {
                 "name": h.name,
                 "qty": h.qty,
                 "unit_price": h.unit_price,
                 "note": h.note,
-                "positions_m": [_mm_to_m(p) for p in positions_by_name.get(h.name, [])],
+                "positions_m": [_mm_to_m(f.position_mm) for f in hw_fasteners],
+                "normals": [list(f.normal) for f in hw_fasteners],
                 "panels": sorted(panels_by_name.get(h.name, set())),
             }
         )

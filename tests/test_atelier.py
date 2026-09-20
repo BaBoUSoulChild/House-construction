@@ -179,30 +179,31 @@ class ContactGeometryTests(unittest.TestCase):
         # Côté gauche : 200 (hauteur, Y) x 780 (profondeur, Z), épaisseur 16mm.
         self.aabb_cote = contact.aabb_mm((-472.0, 171.0, 390.0), (200.0, 780.0, 16.0), (90, 0, 90))
 
-    def test_points_are_recessed_into_panel_a_not_on_the_seam(self):
+    def test_fasteners_protrude_past_panel_a_outer_face_not_on_the_seam(self):
         # aabb_fond = panel_a (traversé par la vis) : épaisseur Y = [55, 71].
-        # Les points doivent être au centre de cette épaisseur (y=63), pas
-        # exactement sur le plan de contact (y=71), pour ne pas sembler
-        # flotter sur l'arête visible du meuble.
-        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=6)
-        self.assertEqual(len(points), 6)
-        for x, y, z in points:
-            self.assertAlmostEqual(y, 63.0, delta=0.5)
-            self.assertNotAlmostEqual(y, 71.0, delta=0.5)
+        # Le côté touche Fond par le dessus (y=71) donc la face extérieure de
+        # Fond est en dessous (y=55) : les fixations doivent dépasser
+        # légèrement au-delà (y < 55), ni sur le plan de contact (71),
+        # ni juste au centre de l'épaisseur (63).
+        fasteners = contact.contact_fasteners_mm(self.aabb_fond, self.aabb_cote, count=6)
+        self.assertEqual(len(fasteners), 6)
+        for f in fasteners:
+            self.assertLess(f.position_mm[1], 55.0)
+            self.assertAlmostEqual(f.normal, (0.0, -1.0, 0.0))
 
-    def test_points_spread_along_the_joint_length(self):
-        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=5)
-        zs = sorted(p[2] for p in points)
+    def test_fasteners_spread_along_the_joint_length(self):
+        fasteners = contact.contact_fasteners_mm(self.aabb_fond, self.aabb_cote, count=5)
+        zs = sorted(f.position_mm[2] for f in fasteners)
         self.assertGreater(zs[-1] - zs[0], 500)  # réparties sur l'essentiel des 780mm de profondeur
 
-    def test_single_point_is_centered(self):
-        points = contact.contact_points_mm(self.aabb_fond, self.aabb_cote, count=1)
-        self.assertEqual(len(points), 1)
+    def test_single_fastener_is_centered(self):
+        fasteners = contact.contact_fasteners_mm(self.aabb_fond, self.aabb_cote, count=1)
+        self.assertEqual(len(fasteners), 1)
 
     def test_disjoint_boxes_do_not_crash(self):
         far_away = contact.aabb_mm((5000.0, 5000.0, 5000.0), (10.0, 10.0, 10.0), (0, 0, 0))
-        points = contact.contact_points_mm(self.aabb_fond, far_away, count=3)
-        self.assertEqual(len(points), 3)  # pas d'exception, juste une approximation dégénérée
+        fasteners = contact.contact_fasteners_mm(self.aabb_fond, far_away, count=3)
+        self.assertEqual(len(fasteners), 3)  # pas d'exception, juste une approximation dégénérée
 
 
 class Export3DHardwarePositionsTests(unittest.TestCase):
@@ -216,6 +217,7 @@ class Export3DHardwarePositionsTests(unittest.TestCase):
         scene = export_3d.furniture_to_scene(f)
         vis = next(h for h in scene["hardware"] if h["name"].startswith("Vis à bois"))
         self.assertEqual(len(vis["positions_m"]), vis["qty"])
+        self.assertEqual(len(vis["normals"]), vis["qty"])
         self.assertEqual(set(vis["panels"]), {"Fond", "Côté gauche"})
 
     def test_manual_hardware_positions_pass_through(self):

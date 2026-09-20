@@ -95,38 +95,37 @@ const meshByPanelName = new Map();
 let highlightedPanel = null;
 const baseMaterialColor = new Map();
 
-// Marqueurs rouges de quincaillerie (vis, tourillons...) + panneaux surlignés en rouge.
-// Rendus en sprites à taille d'écran constante (pas de taille fixe dans le
-// monde 3D) : sinon, en zoomant très près, deux vis espacées de quelques
-// cm finissent par occuper chacune tout l'écran et semblent fusionner,
-// alors qu'elles sont bien distinctes en 3D.
+// Marqueurs de quincaillerie (vis, tourillons...) + panneaux surlignés en rouge.
+// Rendus comme un petit objet 3D reconnaissable (tête + tige, comme une vraie
+// vis) plutôt qu'un simple point plat : un disque plat se fond dans la
+// couleur du panneau et devient illisible. La vis dépasse légèrement de la
+// surface ("comme dévissée") pour se détacher visuellement de la planche, et
+// est orientée selon la normale calculée par contact.py (perpendiculaire au
+// panneau traversé).
 let markersGroup = new THREE.Group();
 scene.add(markersGroup);
 
-function makeMarkerTexture() {
-  const size = 64;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  const r = size / 2;
-  const gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
-  gradient.addColorStop(0, "#ff6b6b");
-  gradient.addColorStop(0.7, "#ff2a2a");
-  gradient.addColorStop(1, "rgba(255,42,42,0)");
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.arc(r, r, r, 0, Math.PI * 2);
-  ctx.fill();
-  return new THREE.CanvasTexture(canvas);
+const SCREW_SHAFT_RADIUS = 0.0025;
+const SCREW_SHAFT_LENGTH = 0.022;
+const SCREW_HEAD_RADIUS = 0.005;
+const SCREW_HEAD_HEIGHT = 0.003;
+
+const screwShaftMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9a9a, metalness: 0.7, roughness: 0.35 });
+const screwHeadMaterial = new THREE.MeshStandardMaterial({ color: 0xff2a2a, metalness: 0.3, roughness: 0.4 });
+const screwShaftGeometry = new THREE.CylinderGeometry(SCREW_SHAFT_RADIUS, SCREW_SHAFT_RADIUS * 0.7, SCREW_SHAFT_LENGTH, 8);
+const screwHeadGeometry = new THREE.CylinderGeometry(SCREW_HEAD_RADIUS, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, 10);
+
+function makeScrewMarker() {
+  const group = new THREE.Group();
+  const head = new THREE.Mesh(screwHeadGeometry, screwHeadMaterial);
+  head.position.y = SCREW_HEAD_HEIGHT / 2;
+  const shaft = new THREE.Mesh(screwShaftGeometry, screwShaftMaterial);
+  shaft.position.y = -SCREW_SHAFT_LENGTH / 2;
+  group.add(head, shaft);
+  return group;
 }
 
-const markerMaterial = new THREE.SpriteMaterial({
-  map: makeMarkerTexture(),
-  sizeAttenuation: false,
-  depthTest: true,
-  transparent: true,
-});
-const MARKER_SCREEN_SIZE = 0.035; // taille écran fixe (unités NDC-ish, indépendante du zoom)
+const UP = new THREE.Vector3(0, 1, 0);
 let hardwareHighlightedPanels = [];
 
 function clearFurniture() {
@@ -286,10 +285,17 @@ function selectHardware(name, hardwareData) {
     }
   }
 
-  for (const [mx, my, mz] of entry.positions_m || []) {
-    const marker = new THREE.Sprite(markerMaterial);
+  const positions = entry.positions_m || [];
+  const normals = entry.normals || [];
+  for (let i = 0; i < positions.length; i++) {
+    const [mx, my, mz] = positions[i];
+    const [nx, ny, nz] = normals[i] || [0, 1, 0];
+    const marker = makeScrewMarker();
     marker.position.set(mx, my, mz);
-    marker.scale.set(MARKER_SCREEN_SIZE, MARKER_SCREEN_SIZE, 1);
+    const normal = new THREE.Vector3(nx, ny, nz);
+    if (normal.lengthSq() > 0) {
+      marker.quaternion.setFromUnitVectors(UP, normal.normalize());
+    }
     markersGroup.add(marker);
   }
 }
