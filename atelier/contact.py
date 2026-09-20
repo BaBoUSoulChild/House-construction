@@ -16,14 +16,16 @@ from dataclasses import dataclass
 from . import geometry
 from .geometry import Vec3
 
-PROTRUSION_MM = 6.0  # de combien le repère dépasse de la surface, "comme dévissé"
+PROTRUSION_MM = 12.0  # doit correspondre au rayon du marqueur 3D côté viewer,
+# pour que la bille repose exactement contre la surface (tangente), ni
+# enfoncée dans le panneau ni flottant loin devant.
 
 
 @dataclass(frozen=True)
 class Fastener:
     """Une position de fixation approximative, avec sa direction de sortie
     (vecteur unitaire, aligné sur un axe) — utilisée par le viewer pour
-    orienter un petit modèle de vis plutôt qu'un simple point plat.
+    savoir de quel côté du panneau poser le marqueur de quincaillerie.
     """
 
     position_mm: Vec3

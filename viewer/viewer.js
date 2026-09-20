@@ -96,36 +96,25 @@ let highlightedPanel = null;
 const baseMaterialColor = new Map();
 
 // Marqueurs de quincaillerie (vis, tourillons...) + panneaux surlignés en rouge.
-// Rendus comme un petit objet 3D reconnaissable (tête + tige, comme une vraie
-// vis) plutôt qu'un simple point plat : un disque plat se fond dans la
-// couleur du panneau et devient illisible. La vis dépasse légèrement de la
-// surface ("comme dévissée") pour se détacher visuellement de la planche, et
-// est orientée selon la normale calculée par contact.py (perpendiculaire au
-// panneau traversé).
+// Une bille opaque bordeaux, bien visible, posée contre la surface extérieure
+// du panneau traversé (tangente : ni enfoncée dedans, ni flottant devant) —
+// comme une tête de vis qui reposerait contre la paroi : "| o" (paroi, vis).
 let markersGroup = new THREE.Group();
 scene.add(markersGroup);
 
-const SCREW_SHAFT_RADIUS = 0.0025;
-const SCREW_SHAFT_LENGTH = 0.022;
-const SCREW_HEAD_RADIUS = 0.005;
-const SCREW_HEAD_HEIGHT = 0.003;
-
-const screwShaftMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9a9a, metalness: 0.7, roughness: 0.35 });
-const screwHeadMaterial = new THREE.MeshStandardMaterial({ color: 0xff2a2a, metalness: 0.3, roughness: 0.4 });
-const screwShaftGeometry = new THREE.CylinderGeometry(SCREW_SHAFT_RADIUS, SCREW_SHAFT_RADIUS * 0.7, SCREW_SHAFT_LENGTH, 8);
-const screwHeadGeometry = new THREE.CylinderGeometry(SCREW_HEAD_RADIUS, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, 10);
+const MARKER_RADIUS = 0.012; // doit correspondre à contact.PROTRUSION_MM (12mm) côté Python
+const markerGeometry = new THREE.SphereGeometry(MARKER_RADIUS, 16, 16);
+const markerMaterial = new THREE.MeshStandardMaterial({
+  color: 0x7a1f2f, // bordeaux
+  roughness: 0.6,
+  metalness: 0.1,
+  transparent: false,
+});
 
 function makeScrewMarker() {
-  const group = new THREE.Group();
-  const head = new THREE.Mesh(screwHeadGeometry, screwHeadMaterial);
-  head.position.y = SCREW_HEAD_HEIGHT / 2;
-  const shaft = new THREE.Mesh(screwShaftGeometry, screwShaftMaterial);
-  shaft.position.y = -SCREW_SHAFT_LENGTH / 2;
-  group.add(head, shaft);
-  return group;
+  return new THREE.Mesh(markerGeometry, markerMaterial);
 }
 
-const UP = new THREE.Vector3(0, 1, 0);
 let hardwareHighlightedPanels = [];
 
 function clearFurniture() {
@@ -285,17 +274,9 @@ function selectHardware(name, hardwareData) {
     }
   }
 
-  const positions = entry.positions_m || [];
-  const normals = entry.normals || [];
-  for (let i = 0; i < positions.length; i++) {
-    const [mx, my, mz] = positions[i];
-    const [nx, ny, nz] = normals[i] || [0, 1, 0];
+  for (const [mx, my, mz] of entry.positions_m || []) {
     const marker = makeScrewMarker();
     marker.position.set(mx, my, mz);
-    const normal = new THREE.Vector3(nx, ny, nz);
-    if (normal.lengthSq() > 0) {
-      marker.quaternion.setFromUnitVectors(UP, normal.normalize());
-    }
     markersGroup.add(marker);
   }
 }
